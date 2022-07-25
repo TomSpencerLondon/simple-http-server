@@ -5,12 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerListenerThread extends Thread {
 
+  private final static Logger LOGGER = LoggerFactory.getLogger(ServerListenerThread.class);
+
   private final ServerSocket serverSocket;
   private int port;
-
   private String webroot;
 
   public ServerListenerThread(int port, String webroot) throws IOException {
@@ -22,25 +25,30 @@ public class ServerListenerThread extends Thread {
   @Override
   public void run() {
     try {
-      Socket socket = serverSocket.accept();
 
-      InputStream inputStream = socket.getInputStream();
-      OutputStream outputStream = socket.getOutputStream();
+      while(serverSocket.isBound() && !serverSocket.isClosed()) {
+        Socket socket = serverSocket.accept();
 
-      String html = "<html><head><title>Simple Java HTTP Server</title></head><body><h1>This page was served using my simple Java Http Server</h1></body></html>";
+        LOGGER.info(" * Connection accepted: " + socket.getInetAddress());
 
-      final String CRLF = "\n\r"; // 13, 10
+        InputStream inputStream = socket.getInputStream();
+        OutputStream outputStream = socket.getOutputStream();
 
-      String response = "HTTP/1.1 200 OK" + CRLF +  // status line : HTTP_VERSION RESPONSE_CODE RESPONSE_MESSAGE
-          "Content-Length: " + html.getBytes().length + CRLF + // HEADER
-          CRLF + html + CRLF + CRLF;
+        String html = "<html><head><title>Simple Java HTTP Server</title></head><body><h1>This page was served using my simple Java Http Server</h1></body></html>";
 
-      outputStream.write(response.getBytes());
+        final String CRLF = "\n\r"; // 13, 10
 
-      inputStream.close();
-      outputStream.close();
-      socket.close();
-      serverSocket.close();
+        String response = "HTTP/1.1 200 OK" + CRLF +  // status line : HTTP_VERSION RESPONSE_CODE RESPONSE_MESSAGE
+            "Content-Length: " + html.getBytes().length + CRLF + // HEADER
+            CRLF + html + CRLF + CRLF;
+
+        outputStream.write(response.getBytes());
+
+        inputStream.close();
+        outputStream.close();
+        socket.close();
+      }
+//      serverSocket.close(); TODO: Handle close
 
     } catch (IOException e) {
       e.printStackTrace();
