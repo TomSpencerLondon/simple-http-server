@@ -31,22 +31,8 @@ public class ServerListenerThread extends Thread {
 
         LOGGER.info(" * Connection accepted: " + socket.getInetAddress());
 
-        InputStream inputStream = socket.getInputStream();
-        OutputStream outputStream = socket.getOutputStream();
-
-        String html = "<html><head><title>Simple Java HTTP Server</title></head><body><h1>This page was served using my simple Java Http Server</h1></body></html>";
-
-        final String CRLF = "\n\r"; // 13, 10
-
-        String response = "HTTP/1.1 200 OK" + CRLF +  // status line : HTTP_VERSION RESPONSE_CODE RESPONSE_MESSAGE
-            "Content-Length: " + html.getBytes().length + CRLF + // HEADER
-            CRLF + html + CRLF + CRLF;
-
-        outputStream.write(response.getBytes());
-
-        inputStream.close();
-        outputStream.close();
-        socket.close();
+        HttpConnectionWorkerThread workerThread = new HttpConnectionWorkerThread(socket);
+        workerThread.start();
       }
 //      serverSocket.close(); TODO: Handle close
 
