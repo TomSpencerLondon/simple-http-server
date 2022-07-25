@@ -19,9 +19,11 @@ public class HttpConnectionWorkerThread extends Thread {
 
   @Override
   public void run() {
+    InputStream inputStream = null;
+    OutputStream outputStream = null;
     try {
-      InputStream inputStream = socket.getInputStream();
-      OutputStream outputStream = socket.getOutputStream();
+      inputStream = socket.getInputStream();
+      outputStream = socket.getOutputStream();
 
       String html = "<html><head><title>Simple Java HTTP Server</title></head><body><h1>This page was served using my simple Java Http Server</h1></body></html>";
 
@@ -33,14 +35,28 @@ public class HttpConnectionWorkerThread extends Thread {
 
       outputStream.write(response.getBytes());
 
-      inputStream.close();
-      outputStream.close();
-      socket.close();
-
       LOGGER.info("Processing finished");
     } catch (IOException e) {
-      e.printStackTrace();
-      // TODO - Handle later
+      LOGGER.error("Problem with communication :" + e);
+    } finally {
+      if (inputStream != null) {
+
+        try {
+          inputStream.close();
+        } catch (IOException e) {}
+      }
+
+      if (outputStream != null) {
+
+        try {
+          outputStream.close();
+        } catch (IOException e) {}
+      }
+      if (socket != null) {
+        try {
+          socket.close();
+        } catch (IOException e) {}
+      }
     }
   }
 }

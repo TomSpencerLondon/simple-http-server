@@ -38,6 +38,13 @@ public class ServerListenerThread extends Thread {
 
     } catch (IOException e) {
       e.printStackTrace();
+      LOGGER.error("Problem with setting socket" + e);
+    } finally {
+      if (serverSocket != null) {
+        try {
+          serverSocket.close();
+        } catch (IOException e) { }
+      }
     }
   }
 }
